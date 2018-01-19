@@ -13,17 +13,27 @@ resetSocketArray = function () {
 }
 
 io.on('connection', (socketClient) =>{
-    console.log("A user connected");
-    
-
     socketClient.on('join', (username) => {
         console.log(username);
         const itemIndex = _.findIndex(socketArrObj, {user: username});
         if(itemIndex === -1) {
             socketArrObj.push({user:username, socket: socketClient});
         }
-        
-        console.log(socketArrObj);
+    });
+
+    socketClient.on('logout', (username) => {
+        console.log('before', socketArrObj.length);
+        const itemIndex = _.findIndex(socketArrObj, {user: username});
+        if(itemIndex !== -1) {
+            
+            console.log('after ',socketArrObj.length);
+
+/*             socket.on('disconnect', function(){
+                console.log('user disconnected');
+            }); */
+
+            socketArrObj.splice(itemIndex,1);
+        }
     });
 
     socketClient.emit('messages', 'Hello from server');
@@ -39,16 +49,16 @@ io.on('connection', (socketClient) =>{
     });
     
         
-    socketClient.on('privateMessage', (privateUser,username) => {
+    socketClient.on('privateMessage', (privateUser,username,message) => {
         const itemIndex = _.findIndex(socketArrObj, {user: privateUser});
-        console.log('privateMessage', privateUser, username , itemIndex);
+        //console.log('privateMessage', privateUser, username , itemIndex);
         if(itemIndex !== -1) {
             socketArrObj[itemIndex].socket.emit('privateMessage', {
                 from:username,
-                msg:'Test private message'
+                msg:message
             });
         } else {
-            console.log('No user found',socketArrObj);
+            console.log('No user found');
         }
     });
 

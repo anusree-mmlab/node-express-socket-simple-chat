@@ -11,6 +11,7 @@
             }
 
             .bigrow { 
+                position: relative;
                 width:80%;
                 height: 200px;
                 border: solid 1px;
@@ -28,39 +29,44 @@
                 padding:10px;
                 background-color: goldenrod;
                 border: solid 1px grey;
-            }
-
-            .bt-green {
-                width:auto;
-                height:auto;
-                padding:10px;
-                background-color: green;
-                border: solid 1px grey;
+                cursor: pointer;
+                color: white;
             }
 
             .ft  {
                 width:100%;
                 height: auto;
+                padding:10px;
             }
 
             .ft-item-left {
                 float: left;
-                width:30%;
+                width:28%;
                 height: auto;
+                padding:10px;
             }
             .ft-item-right {
                 float: left;
-                width:40%;
+                width:50%;
                 height: auto;
+                margin-left:10px;
+                padding:10px;
             }
         </style>    
     </head>
     <body>
-        <div class="ft">
+        <div class="ft" style="height:50px;width:80%">
                 <div class="ft-item-left">
                         <input type="text" id="user_name" placeholder="User name"/>
+                        <input type="button" class="bt" style="background-color:green;" value="LOGIN" onclick="login()"/>
                 </div>
-                <input type="button" class="bt-green" value="LOGIN" onclick="login()"/>
+                <div class="ft-item-left">
+                        <input type="button" class="bt" style="background-color:brown" value="LOGOUT" onclick="logout()"/>
+                </div>
+
+                <div class="ft-item-left">
+                        <input type="button" class="bt" style="background-color:red;" value="RESET SERVER" onclick="resetTest()"/>
+                </div> 
         </div>
 
         <div class="bigrow" id="chat_display_area">
@@ -69,21 +75,22 @@
 
 
         <div class="ft">
-            <div class="ft-item-left">
-                    <input type="button" class="bt" value="RESET SERVER" onclick="resetTest()"/>
-            </div>
-            <div class="ft-item-left">
+            <div class="ft-item-left" style="border: dotted 1px">
+                    <h3>Send Private Message</h3>
                     <input type="text" id="specific_user" placeholder="User name of private user"/>
-                    <br/>
-                    <input type="button" class="bt" value="Message to specific user" onclick="privateMessage()"/>
+                    <br/> <br/>
+                    <textarea cols="25" rows="5" id="private_message" placeholder="Enter message..."></textarea>
+                    <br/><br/>
+                    <input type="button" class="bt" style="background-color:blueviolet" value="SEND" onclick="privateMessage()"/>
             </div>
-            <div class="ft-item-right">
+            <div class="ft-item-right" style="border: dotted 1px">
+                    <h3>Send BroadCast Message</h3>
                     <textarea cols="25" rows="5" id="message" placeholder="Enter message..."></textarea>
+                    <br/> <br/>
+                    <input type="button" class="bt" value="SEND" onclick="sendMessage()"/>
             </div>
         </div>
-        <div>
-                <input type="button" class="bt" value="SEND" onclick="sendMessage()"/>
-        </div>
+
 
         <script src="/socket.io-client/dist/socket.io.js"></script>
         <script>
@@ -108,10 +115,10 @@
 
             });
 
-            socket.on('event', function(data){});
-            socket.on('disconnect', function(){});
 
-
+            socket.on('disconnect', function(){
+                console.log('Socket Disconnected');
+            });
 
             var sendMessage = function() {
                 var user_name = document.querySelector('#user_name').value;
@@ -130,18 +137,25 @@
             var privateMessage = function() {
                 var specific_user = document.querySelector('#specific_user').value;
                 var logged_in_user = document.querySelector('#user_name').value;
+                var message = document.querySelector('#private_message').value;
 
                 if(specific_user) {
-                    socket.emit('privateMessage', specific_user, logged_in_user);
+                    socket.emit('privateMessage', specific_user, logged_in_user,message.trim());
                 }
             }
 
             socket.on('privateMessage', (data) => { console.log('on private message received', data);
                 var chatMessageBox = document.querySelector('#chat_display_area');
                 var newMessage = document.createElement("div");
-                newMessage.innerHTML = `<span style="background-color:orange; color: white">--${data.msg}   from ${data.from} ---</span>`
+                newMessage.innerHTML = `<span style="background-color:orange; color: white">${data.msg} from ${data.from} </span>`
                 chatMessageBox.appendChild(newMessage);
             });
+
+            var logout = function() {
+                var user_name = document.querySelector('#user_name').value;
+                socket.emit('logout',user_name.trim());
+                socket.disconnect();
+            }
         </script>
     </body>
 </html>
