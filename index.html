@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Test</title>
+        <style>
+            body  {
+                width:100%;
+                height: auto;
+                margin: auto;
+                padding: 10px;
+            }
+
+            .bigrow { 
+                width:80%;
+                height: 200px;
+                border: solid 1px;
+                margin:10px;
+            }
+
+            .row { 
+                width:100%;
+                height: auto;
+            }
+
+            .bt {
+                width:auto;
+                height:auto;
+                padding:10px;
+                background-color: goldenrod;
+                border: solid 1px grey;
+            }
+
+            .bt-green {
+                width:auto;
+                height:auto;
+                padding:10px;
+                background-color: green;
+                border: solid 1px grey;
+            }
+
+            .ft  {
+                width:100%;
+                height: auto;
+            }
+
+            .ft-item-left {
+                float: left;
+                width:30%;
+                height: auto;
+            }
+            .ft-item-right {
+                float: left;
+                width:40%;
+                height: auto;
+            }
+        </style>    
+    </head>
+    <body>
+        <div class="ft">
+                <div class="ft-item-left">
+                        <input type="text" id="user_name" placeholder="User name"/>
+                </div>
+                <input type="button" class="bt-green" value="LOGIN" onclick="login()"/>
+        </div>
+
+        <div class="bigrow" id="chat_display_area">
+
+        </div>
+
+
+        <div class="ft">
+            <div class="ft-item-left">
+                    <input type="button" class="bt" value="RESET SERVER" onclick="resetTest()"/>
+            </div>
+            <div class="ft-item-left">
+                    <input type="text" id="specific_user" placeholder="User name of private user"/>
+                    <br/>
+                    <input type="button" class="bt" value="Message to specific user" onclick="privateMessage()"/>
+            </div>
+            <div class="ft-item-right">
+                    <textarea cols="25" rows="5" id="message" placeholder="Enter message..."></textarea>
+            </div>
+        </div>
+        <div>
+                <input type="button" class="bt" value="SEND" onclick="sendMessage()"/>
+        </div>
+
+        <script src="/socket.io-client/dist/socket.io.js"></script>
+        <script>
+            var socket = io('http://localhost:4005');
+            var login = function() {
+                var user_name = document.querySelector('#user_name').value;
+                socket.emit('join', user_name);
+            }
+          
+
+            socket.on('messages', (data) => {
+                console.log('data from server,', data);
+
+            });
+
+            socket.on('broad', (data) => {
+                console.log('data from server,', data);
+                var chatMessageBox = document.querySelector('#chat_display_area');
+                var newMessage = document.createElement("div");
+                newMessage.innerHTML = '<b>'+data.user +'</b> : ' + data.message ;
+                chatMessageBox.appendChild(newMessage);
+
+            });
+
+            socket.on('event', function(data){});
+            socket.on('disconnect', function(){});
+
+
+
+            var sendMessage = function() {
+                var user_name = document.querySelector('#user_name').value;
+                var message = document.querySelector('#message').value;
+
+                console.log(user_name, message);
+
+                socket.emit('onChat', {user : user_name, message: message.trim()});
+            }
+
+            var resetTest = function() {
+                
+                socket.emit('reset', 'Reset');
+            }
+
+            var privateMessage = function() {
+                var specific_user = document.querySelector('#specific_user').value;
+                var logged_in_user = document.querySelector('#user_name').value;
+
+                if(specific_user) {
+                    socket.emit('privateMessage', specific_user, logged_in_user);
+                }
+            }
+
+            socket.on('privateMessage', (data) => { console.log('on private message received', data);
+                var chatMessageBox = document.querySelector('#chat_display_area');
+                var newMessage = document.createElement("div");
+                newMessage.innerHTML = `<span style="background-color:orange; color: white">--${data.msg}   from ${data.from} ---</span>`
+                chatMessageBox.appendChild(newMessage);
+            });
+        </script>
+    </body>
+</html>
