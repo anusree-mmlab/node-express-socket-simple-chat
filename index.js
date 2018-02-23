@@ -2,6 +2,7 @@ const http = require('http');
 const app = require('./app');
 const socketio = require('socket.io');
 const _ = require('lodash');
+const fs = require('fs');
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -48,6 +49,16 @@ io.on('connection', (socketClient) =>{
         resetSocketArray();
     });
     
+
+    socketClient.on('file', (stream,data) => {
+        console.log('On file',stream,data);
+       
+
+        //var filename = path.basename(data.name);
+        var filename = __dirname+'/'+data.name;
+        //stream.pipe(fs.createWriteStream(filename));
+        fs.createWriteStream(filename);
+    });
         
     socketClient.on('privateMessage', (privateUser,username,message) => {
         const itemIndex = _.findIndex(socketArrObj, {user: privateUser});

@@ -91,9 +91,26 @@
             </div>
         </div>
 
+        <br/>
+        <div>
+            <h3>Streaming</h3>
+        
+            <div>
+                   <!--  <input id="file" type="file"  onChange="sendStream($event)"/> -->
+                   <input id="file" type="file"/>
+                    <input type="button" class="bt" value="STREAM" onclick="sendStream()"/>
+            </div>
+        </div>
+ 
+
 
         <script src="/socket.io-client/dist/socket.io.js"></script>
+        <script src="/socket.io-stream/socket.io-stream.js"></script>
+        <script src="/jquery/dist/jquery.min.js"></script>
+        
         <script>
+
+
             var socket = io('http://localhost:4005');
             var login = function() {
                 var user_name = document.querySelector('#user_name').value;
@@ -156,6 +173,31 @@
                 socket.emit('logout',user_name.trim());
                 socket.disconnect();
             }
+
+            var sendStream = function(e) {
+                console.log("send stream");
+                var file = e.target.files[0];
+                var stream = ss.createStream();
+                console.log("stream",stream);
+                /* ss(socket).on('profile-image', function(stream, data) {
+                    var filename = path.basename(data.name);
+                    stream.pipe(fs.createWriteStream(filename));
+                }); */
+            }
+
+            $('#file').change(function(e) {
+                var file = e.target.files[0];
+                var stream = ss.createStream();
+
+                console.log("stream",stream);
+
+                // upload a file to the server.
+                //ss(socket).emit('file', stream, {size: file.size});
+                //ss.createBlobReadStream(file).pipe(stream);
+
+                socket.emit('file', stream, {size: file.size, name: 'abcd.png'});
+                ss.createBlobReadStream(file).pipe(stream);
+            });
         </script>
     </body>
 </html>
